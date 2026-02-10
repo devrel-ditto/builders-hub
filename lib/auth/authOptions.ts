@@ -55,13 +55,16 @@ async function verifyOTP(
     });
     return { isValid: false, reason: 'EXPIRED' };
   }
+  
+  //Delete the token after checking validity to prevent reuse, even if the code is incorrect
+  await prisma.verificationToken.delete({
+    where: { identifier_token: { identifier: email, token: record.token } },
+  });
 
   if (record.token !== code) {
     return { isValid: false, reason: 'INVALID' };
   }
-  await prisma.verificationToken.delete({
-    where: { identifier_token: { identifier: email, token: record.token } },
-  });
+
   return { isValid: true };
 }
 
